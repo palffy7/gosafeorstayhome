@@ -461,8 +461,7 @@ function App() {
                 <p>Zeige ihn beim Eintritt zusammen mit deiner ID oder Pass.</p>
                 <p>Viel Spass!</p>
                 <div className='QRCode-container'>
-                  {/* <QRCode value="http://facebook.github.io/react/" /> */}
-                  <QRCode value={stringQRCode} size='300' />
+                  <QRCode value={stringQRCode} size='100' />
                 </div>
               </div>
             }
