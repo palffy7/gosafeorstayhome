@@ -30,40 +30,55 @@ Amplify.configure({
     identityPoolRegion: 'eu-central-1',
 
     // OPTIONAL - Amazon Cognito User Pool ID
-    userPoolId: 'eu-central-1_mA7oi9fFZ',
+    userPoolId: 'eu-central-1_IttCNd7vA',
 
     // OPTIONAL - Amazon Cognito Web Client ID (26-char alphanumeric string)
-    userPoolWebClientId: '7hskrl3g7nb2t9m44v0ojujlsm',
+    userPoolWebClientId: '4fb6gp8pk6dm92sa30ohvva7da',
   }
 });
 
-// const oauth = {
-//   domain: "gsosh.auth.eu-central-1.amazoncognito.com",
-//   scope: ["email", "profile"],
-//   redirectSignIn: "http://localhost:3000",
-//   redirectSignOut: "http://localhost:3000",
-//   responseType: "code"
-// };
+const oauth = {
+  domain: "gsosh.auth.eu-central-1.amazoncognito.com",
+  scope: ["email", "profile"],
+  redirectSignIn: "http://localhost:3000",
+  redirectSignOut: "http://localhost:3000",
+  responseType: "code"
+};
 
-// Auth.configure({ oauth });
+Auth.configure({ oauth });
 
 
 
 function App() {
 
-  var QRCode = require('qrcode.react')
+  var aesjs = require('aes-js');
 
-  const errorMessages =[
-    {message: 'Incorrect username or password.', 
-    translation:  'Falsches Passwort oder Benutzername'}, 
-    {message: 'An account with the given email already exists.', 
-    translation:  'Ein Konto mit dieser Email Adresse existiert bereits'},
-    {message: 'Password attempts exceeded', 
-    translation:  'Anzahl Login Versuche überschritten'},
-    {message: 'Invalid verification code provided, please try again.', 
-    translation:  'Falscher Code. Bitte versuche es erneut.'},
-    {message: 'User is not confirmed.', 
-    translation:  'Dein Konto wurde nicht bestätigt. Klicke hier um dein Konto zu besätigen:'}
+  var QRCode = require('qrcode.react');
+
+  var key = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16];
+  var aesCtr = new aesjs.ModeOfOperation.ctr(key);
+
+  const errorMessages = [
+    {
+      message: 'Incorrect username or password.',
+      translation: 'Falsches Passwort oder Benutzername'
+    },
+    {
+      message: 'An account with the given email already exists.',
+      translation: 'Ein Konto mit dieser Email Adresse existiert bereits'
+    },
+    {
+      message: 'Password attempts exceeded',
+      translation: 'Anzahl Login Versuche überschritten'
+    },
+    {
+      message: 'Invalid verification code provided, please try again.',
+      translation: 'Falscher Code. Bitte versuche es erneut.'
+    },
+    {
+      message: 'User is not confirmed.',
+      translation: 'Dein Konto wurde nicht bestätigt. Klicke hier um dein Konto zu besätigen:'
+    }
   ]
 
   //const [token, , deleteToken] = useCookies(['mr-token'])
@@ -79,6 +94,7 @@ function App() {
     {
       given_name: '',
       family_name: '',
+      address: '',
       password: '',
       email: '',
       phone_number: ''
@@ -138,6 +154,11 @@ function App() {
     // var attr = Auth.userAttributes(user)
     // console.log(attr.data)
     // attr.then(attr.json())
+  }
+
+  const handleToggle = (e) => {
+    setFormError([false, ''])
+    e.target.id === 'toggleLogin' ? setSignedUp(true) : setSignedUp(false)
   }
 
   const handleChange = e => {
@@ -201,13 +222,13 @@ function App() {
           phone_number: userData['phone_number'],   // E.164 number convention
           given_name: userData['given_name'],
           family_name: userData['family_name'],
-          address: 'none',
+          address: userData['address'],
         }
       });
       setSigneUpRequested(true)
       console.log({ respuser });
     } catch (error) {
-      var message_filter = errorMessages.filter( message => message.message === error['message'])
+      var message_filter = errorMessages.filter(message => message.message === error['message'])
       setFormError([true, message_filter.length > 0 ? message_filter[0].translation : error['message']]);
       console.log('error signing up:', error);
     }
@@ -216,14 +237,9 @@ function App() {
   async function confirmSignUp() {
     try {
       await Auth.confirmSignUp(userData['email'], verificationCode);
-      const respuser = await Auth.signIn(userData['email'], userData['password']);
-      console.log('conf')
-      console.log(respuser)
-      setUser(respuser)
-      setConfirmed(true)
-      setSignedIn(true);
+      SignIn()
     } catch (error) {
-      var message_filter = errorMessages.filter( message => message.message === error['message'])
+      var message_filter = errorMessages.filter(message => message.message === error['message'])
       setFormError([true, message_filter.length > 0 ? message_filter[0].translation : error['message']]);
       console.log('error confirming sign up', error);
     }
@@ -238,7 +254,7 @@ function App() {
       setConfirmed(true)
       setSignedIn(true);
     } catch (error) {
-      var message_filter = errorMessages.filter( message => message.message === error['message'])
+      var message_filter = errorMessages.filter(message => message.message === error['message'])
       setFormError([true, message_filter.length > 0 ? message_filter[0].translation : error['message']]);
       // setConfirmationFailed(true)
       console.log('error signing in', error);
@@ -258,15 +274,20 @@ function App() {
   }
 
   const SetLocalUserAttribute = (userattr) => {
-    // console.log('set')
-    // console.log(userattr)
+    console.log('set')
+    console.log(userattr)
     const newContentQRCode = contentQRCode;
     newContentQRCode['given_name'] = userattr[5]['Value']
     newContentQRCode['family_name'] = userattr[6]['Value']
+    newContentQRCode['address'] = userattr[1]['Value']
     newContentQRCode['email'] = userattr[7]['Value']
     newContentQRCode['phone_number'] = userattr[4]['Value']
     setContenQRCode(newContentQRCode)
-    setStringQRCode('startQRCode;' + contentQRCode['given_name'] + ';' + contentQRCode['family_name'] + ';' + contentQRCode['email'] + ';' + contentQRCode['phone_number'] + ';endQRCode')
+    var QRCode = contentQRCode['given_name'] + ';' + contentQRCode['family_name'] + ';' +  contentQRCode['address'] + ';' + contentQRCode['email'] + ';' + contentQRCode['phone_number']
+    var QRCodeBytes = aesjs.utils.utf8.toBytes(QRCode);
+    var encryptedBytes = aesCtr.encrypt(QRCodeBytes);
+    var encryptedHex = aesjs.utils.hex.fromBytes(encryptedBytes);
+    setStringQRCode(encryptedHex + ';endQRCode')
   }
 
   async function VerifyAccount(attr) {
@@ -276,7 +297,7 @@ function App() {
       setConfirmed(true)
       setSignedIn(true);
     } catch (error) {
-      var message_filter = errorMessages.filter( message => message.message === error['message'])
+      var message_filter = errorMessages.filter(message => message.message === error['message'])
       setFormError([true, message_filter.length > 0 ? message_filter[0].translation : error['message']]);
       console.log('error signing in', error);
     }
@@ -306,7 +327,7 @@ function App() {
                 {!signeUpRequested ?
                   <React.Fragment>
                     <Formik
-                      initialValues={{ given_name: '', family_name: '', password: '', passwordcontrol: '', email: '', phone_number: '' }}
+                      initialValues={{ given_name: '', family_name: '', address: '', password: '', passwordcontrol: '', email: '', phone_number: '' }}
                       onSubmit={(values, { setSubmitting }) => {
                         console.log('formik submitting')
                         handleFormikSubmit(values)
@@ -317,6 +338,10 @@ function App() {
                           .required('Nachname wird benötigt'),
                         given_name: Yup.string()
                           .required('Vorname wird benötigt'),
+                        address: Yup.string()
+                          .required('Postleitzahl wird benötigt')
+                          .matches(/(?=.*[0-9])/, 'Postleitzahl darf nur aus Zahlen bestehen.')
+                          .min(4, 'Postleitzahl muss mindestens 4 Zahlen enthalten'),
                         email: Yup.string()
                           .email('Muss eine gültige Email Adresse sein')
                           .required('Email wird benötigt'),
@@ -368,6 +393,17 @@ function App() {
                             {errors.family_name && touched.family_name && (
                               <div className="input-feedback">{errors.family_name}</div>
                             )}
+                            <label>Postleitzahl</label><br />
+                            <input
+                              type='text'
+                              name='address'
+                              placeholder='Postleitzahl'
+                              onChange={handleChange}
+                              onBlur={handleBlur}
+                              className={errors.address && touched.address && "error"} />
+                            {errors.address && touched.address && (
+                              <div className="input-feedback">{errors.address}</div>
+                            )}
                             <label>Passwort</label><br />
                             <input
                               type='password'
@@ -418,7 +454,7 @@ function App() {
                             {formError[0] && (
                               <div className="login-feedback">{formError[1]}</div>
                             )}
-                            <p onClick={() => setSignedUp(true)}>Du hast bereits ein Konto? Melde dich hier an!</p>
+                            <p id='toggleLogin' onClick={handleToggle}>Du hast bereits ein Konto? Melde dich hier an!</p>
                           </form>
                         )
                       }}
@@ -430,8 +466,8 @@ function App() {
                     <input type='text' name='verification_code' onChange={handleVerificationCode} /><br />
                     <button >Bestätigen</button><br />
                     {formError[0] && (
-                    <div className="login-feedback">{formError[1]}</div>
-                  )}
+                      <div className="login-feedback">{formError[1]}</div>
+                    )}
                   </form>
                 }
               </div> :
@@ -445,12 +481,11 @@ function App() {
                   {formError[0] && (
                     <div className="login-feedback">{formError[1]}</div>
                   )}
-                  
-                  <p onClick={() => setSignedUp(false)}>Hast du noch kein Konto? Registriere dich hier!</p>
+                  <p id='toggleRegister' onClick={handleToggle}>Hast du noch kein Konto? Registriere dich hier!</p>
                 </form>
                 {confirmationFailed && (
-                    <div><button onClick={handleNewAccountVerification}>Bestätige deine Kontaktdaten</button></div>
-                  )}
+                  <div><button onClick={handleNewAccountVerification}>Bestätige deine Kontaktdaten</button></div>
+                )}
               </div>
             }
           </React.Fragment> :
@@ -461,8 +496,12 @@ function App() {
                 <p>Zeige ihn beim Eintritt zusammen mit deiner ID oder Pass.</p>
                 <p>Viel Spass!</p>
                 <div className='QRCode-container'>
+<<<<<<< HEAD
                   {/* <QRCode value="http://facebook.github.io/react/" /> */}
                   <QRCode value={stringQRCode} />
+=======
+                  <QRCode value={stringQRCode} size={200} />
+>>>>>>> develop
                 </div>
               </div>
             }

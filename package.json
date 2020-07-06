@@ -9,6 +9,7 @@
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.5.0",
     "@testing-library/user-event": "^7.2.1",
+    "aes-js": "^3.1.2",
     "aws-amplify": "^3.0.18",
     "aws-amplify-react": "^4.1.17",
     "formik": "^2.1.4",
@@ -21,7 +22,11 @@
     "react-scripts": "3.4.1",
     "yup": "^0.29.1"
   },
+<<<<<<< HEAD
   
+=======
+  "homepage": ".",
+>>>>>>> develop
   "scripts": {
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build",
