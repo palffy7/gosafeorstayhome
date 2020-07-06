@@ -137,7 +137,7 @@ h5{
 
 .welcome h2, p {
   text-align: center;
-  font-size: 10px;
+  font-size: 12px;
   cursor: pointer;
 }
 
@@ -184,6 +184,10 @@ button:disabled {
 }
 
 .submit-button {
+  width: 100%;
+}
+
+.toggle-button {
   width: 100%;
 }
 

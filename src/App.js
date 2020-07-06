@@ -55,7 +55,7 @@ function App() {
 
   var QRCode = require('qrcode.react');
 
-  var key = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16];
+  var key = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
   var aesCtr = new aesjs.ModeOfOperation.ctr(key);
 
   const errorMessages = [
@@ -283,7 +283,7 @@ function App() {
     newContentQRCode['email'] = userattr[7]['Value']
     newContentQRCode['phone_number'] = userattr[4]['Value']
     setContenQRCode(newContentQRCode)
-    var QRCode = contentQRCode['given_name'] + ';' + contentQRCode['family_name'] + ';' +  contentQRCode['address'] + ';' + contentQRCode['email'] + ';' + contentQRCode['phone_number']
+    var QRCode = contentQRCode['given_name'] + ';' + contentQRCode['family_name'] + ';' + contentQRCode['address'] + ';' + contentQRCode['email'] + ';' + contentQRCode['phone_number']
     var QRCodeBytes = aesjs.utils.utf8.toBytes(QRCode);
     var encryptedBytes = aesCtr.encrypt(QRCodeBytes);
     var encryptedHex = aesjs.utils.hex.fromBytes(encryptedBytes);
@@ -316,12 +316,13 @@ function App() {
         {/* </div> */}
       </header>
       <div className='layout'>
-        <div className='welcome'>
-          <h5>Dein eigener QR Code für den Ausgang</h5>
-          <h5>Erstelle deinen eigenen QR Code und geniesse deinen Abend</h5>
-        </div>
+
         {!signedIn ?
           <React.Fragment>
+            <div className='welcome'>
+              <h5>Dein eigener QR Code für den Ausgang</h5>
+              <h5>Registriere dich und erhalte deinen eigenen QR Code</h5>
+            </div>
             {!signedUp ?
               <div className='login'>
                 {!signeUpRequested ?
@@ -454,7 +455,10 @@ function App() {
                             {formError[0] && (
                               <div className="login-feedback">{formError[1]}</div>
                             )}
-                            <p id='toggleLogin' onClick={handleToggle}>Du hast bereits ein Konto? Melde dich hier an!</p>
+                            <p>Du hast bereits ein Konto? Melde dich hier an!</p>
+                            <div className='toggle-button'>
+                              <button id='toggleLogin' onClick={handleToggle}>Login</button>
+                            </div>
                           </form>
                         )
                       }}
@@ -481,8 +485,11 @@ function App() {
                   {formError[0] && (
                     <div className="login-feedback">{formError[1]}</div>
                   )}
-                  <p id='toggleRegister' onClick={handleToggle}>Hast du noch kein Konto? Registriere dich hier!</p>
+                  <p>Hast du noch kein Konto? Registriere dich hier!</p>
                 </form>
+                <div className='toggle-button'>
+                  <button id='toggleRegister' onClick={handleToggle}>Registrieren</button>
+                </div>
                 {confirmationFailed && (
                   <div><button onClick={handleNewAccountVerification}>Bestätige deine Kontaktdaten</button></div>
                 )}
@@ -495,6 +502,7 @@ function App() {
                 <p>Voilà! Dies ist dein persönlicher QR Code</p>
                 <p>Zeige ihn beim Eintritt zusammen mit deiner ID oder Pass.</p>
                 <p>Viel Spass!</p>
+                <p>Tipp: Mache einen Screenshot!</p>
                 <div className='QRCode-container'>
                   <QRCode value={stringQRCode} size={200} />
                 </div>
